@@ -1,8 +1,15 @@
 import React from 'react'
+import dynamic from 'next/dynamic';
+import ClientOnly from '@/components/ClientOnly';
+
+const KanbanBoard = dynamic(() => import('./components/KanbanBoard'), { ssr: false });
 
 const Page = () => {
   return (
-    <div>Page56</div>
+    <div className=''>
+
+      <KanbanBoard />
+      </div>
   )
 }
 
