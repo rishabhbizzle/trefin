@@ -23,6 +23,7 @@ import {
   } from "@/components/ui/dropdown-menu"
   import { Input } from "@/components/ui/input"
   import MobileNav from '@/components/MobileNav'
+import { ModeToggle } from './ThemeToggle'
   
 const Navbar = () => {
   return (
@@ -56,6 +57,7 @@ const Navbar = () => {
         <DropdownMenuItem>Logout</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    <ModeToggle />
   </header></div>
   )
 }
