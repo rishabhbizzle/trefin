@@ -18,20 +18,18 @@ import { Badge } from "@/components/ui/badge";
 import { Task, ColumnId, Columns } from "../types";
 import AddTaskDialog from "./AddTaskDialog";
 import TaskDetailsDialog from "./TaskDetailDialog";
+import { updateTaskTypeByDrag } from "@/lib/actions";
 
-const initialColumns: Columns = {
-  "To Do": [],
-  "In Progress": [],
-  Done: [],
-  "On Hold": [],
-};
 
-const KanbanBoard: React.FC = () => {
-  const [columns, setColumns] = useState<Columns>(initialColumns);
+interface KanbanBoardProps {
+  columns: Columns
+}
+
+const KanbanBoard: React.FC<KanbanBoardProps> = ({ columns }) => {
   const [isAddTaskDialogOpen, setIsAddTaskDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  const onDragEnd = (result: DropResult) => {
+  const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result;
 
     if (!destination) return;
@@ -43,35 +41,45 @@ const KanbanBoard: React.FC = () => {
       return;
     }
 
-    const start = columns[source.droppableId as ColumnId];
-    const finish = columns[destination.droppableId as ColumnId];
+    const sourceColumn = columns[source.droppableId as ColumnId];
+    const destColumn = columns[destination.droppableId as ColumnId];
+    const [movedTask] = sourceColumn.splice(source.index, 1);
 
-    if (start === finish) {
-      const newTasks = Array.from(start);
-      const [reorderedItem] = newTasks.splice(source.index, 1);
-      newTasks.splice(destination.index, 0, reorderedItem);
+    if (source.droppableId !== destination.droppableId) {
+      // The task has changed columns
+      try {
+        // Update the task in the database
+        await updateTaskTypeByDrag(movedTask.id, destination.droppableId);
+        
+        // If the update was successful, update the local state
+        // destColumn.splice(destination.index, 0, {
+        //   ...movedTask,
+        //   column: destination.droppableId as ColumnId
+        // });
 
-      const newColumn = {
+        // setColumns({
+        //   ...columns,
+        //   [source.droppableId]: sourceColumn,
+        //   [destination.droppableId]: destColumn,
+        // });
+
+        // toast.success(`Task "${movedTask.title}" moved to ${destination.droppableId}`);
+      } catch (error) {
+        console.error('Failed to update task:', error);
+        // toast.error('Failed to update task. Please try again.');
+        
+        // Revert the change in the UI
+        sourceColumn.splice(source.index, 0, movedTask);
+        setColumns({...columns});
+      }
+    } else {
+      // The task has only changed position within the same column
+      destColumn.splice(destination.index, 0, movedTask);
+      setColumns({
         ...columns,
-        [source.droppableId]: newTasks,
-      };
-
-      setColumns(newColumn);
-      return;
+        [source.droppableId]: destColumn,
+      });
     }
-
-    const startTasks = Array.from(start);
-    const [movedTask] = startTasks.splice(source.index, 1);
-    const finishTasks = Array.from(finish);
-    finishTasks.splice(destination.index, 0, movedTask);
-
-    const newColumns = {
-      ...columns,
-      [source.droppableId]: startTasks,
-      [destination.droppableId]: finishTasks,
-    };
-
-    setColumns(newColumns);
   };
 
   const addTask = (task: Task) => {
@@ -127,11 +135,11 @@ const KanbanBoard: React.FC = () => {
                                 <div className="flex justify-between items-center mt-2">
                                   <Badge>{task.priority}</Badge>
                                   <span className="text-sm text-gray-500">
-                                    {task.dueDate}
+                                    {task.due_date ? new Date(task.due_date).toDateString() : "No Due Date"}
                                   </span>
                                 </div>
                                 <Badge variant="outline" className="mt-2">
-                                  {task.type}
+                                  {task.category}
                                 </Badge>
                               </CardHeader>
                             </Card>
