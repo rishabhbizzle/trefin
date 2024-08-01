@@ -63,11 +63,11 @@ const Sidebar = () => {
               Finance
             </Link>
             <Link
-              href="/dashboard/journal"
+              href="/dashboard/notes"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
             >
               <Users className="h-4 w-4" />
-              Journal
+              Notes
             </Link>
             <Link
               href="/dashboard/other"
