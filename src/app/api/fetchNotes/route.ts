@@ -1,6 +1,8 @@
 import { createClient } from "@/utils/supabase/server";
 
 export async function GET(_: Request): Promise<Response> {
+
+  console.log("fetching notes");
     const supabase = createClient();
     const {
       data: { user },

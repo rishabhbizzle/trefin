@@ -3,6 +3,9 @@ import { createClient } from "@/utils/supabase/server";
 export const runtime = "edge";
 
 export async function POST(req: Request): Promise<Response> {
+  console.log("saving notes...");
+
+
     const supabase = createClient();
     const {
       data: { user },
@@ -54,6 +57,8 @@ export async function POST(req: Request): Promise<Response> {
 }
 
 export async function GET(req: Request): Promise<Response> {
+  console.log("fetching notes single");
+
   const id = new URL(req.url).searchParams.get("id");
   const supabase = createClient();
     const {
