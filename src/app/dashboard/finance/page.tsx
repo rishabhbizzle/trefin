@@ -28,7 +28,7 @@ export default function FinanceDashboard() {
           <TabsTrigger value="report">Report</TabsTrigger>
         </TabsList>
         <TabsContent value="expenses">
-          <AddExpenseForm />
+          <AddExpenseForm type='expense' />
           <ExpensesTable date={selectedDate} />
         </TabsContent>
         <TabsContent value="incomes">

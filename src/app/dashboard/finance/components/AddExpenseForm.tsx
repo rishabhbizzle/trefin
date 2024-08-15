@@ -31,6 +31,8 @@ import {
 
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { createFinanceEntry } from "@/lib/actions";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -43,10 +45,10 @@ const formSchema = z.object({
     required_error: "Please select a category.",
   }),
   date: z.string(),
-  notes: z.string().optional(),
+  comment: z.string().optional(),
 });
 
-export default function AddExpenseForm({ type }: {type?: string}) {
+export default function AddExpenseForm({ type = 'expense' }: {type?: 'expense' | 'income'}) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,23 +56,13 @@ export default function AddExpenseForm({ type }: {type?: string}) {
       amount: 0,
       category: "",
       date: new Date().toISOString().split("T")[0],
-      notes: "",
+      comment: "",
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const res = await fetch("/api/expenses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to add expense");
-      }
+      await createFinanceEntry(values, type);
 
       toast.success("Expense added successfully");
       form.reset();
@@ -86,6 +78,7 @@ export default function AddExpenseForm({ type }: {type?: string}) {
         <DialogHeader>
           <DialogTitle>Are you absolutely sure?</DialogTitle>
         </DialogHeader>
+        <ScrollArea className="max-h-[400px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
@@ -163,13 +156,13 @@ export default function AddExpenseForm({ type }: {type?: string}) {
             />
             <FormField
               control={form.control}
-              name="notes"
+              name="comment"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>comment</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Add any additional notes here."
+                      placeholder="Add any additional comment here."
                       className="resize-none"
                       {...field}
                     />
@@ -178,9 +171,10 @@ export default function AddExpenseForm({ type }: {type?: string}) {
                 </FormItem>
               )}
             />
-            <Button type="submit">Add Expense</Button>
+            <Button type="submit">Add</Button>
           </form>
         </Form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
