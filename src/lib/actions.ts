@@ -58,10 +58,8 @@ export const getUserTasks = async () => {
   }
 };
 
-export const updateTaskTypeByDrag = async (id, destination) => {
+export const updateTaskTypeByDrag = async (id: string, destination: string) => {
   try {
-
-    console.log("id", id, "destination", destination);
     const supabase = createClient();
     const {
       data: { user },
@@ -71,17 +69,81 @@ export const updateTaskTypeByDrag = async (id, destination) => {
       throw new Error("User not found");
     }
 
-
     await supabase
-    .from('tasks')
-    .update({ type: destination })
-    .eq('id', id)
-    .select()
-            
+      .from("tasks")
+      .update({ type: destination })
+      .eq("id", id)
+      .select();
 
-      revalidatePath("/dashboard/tasks");
+    revalidatePath("/dashboard/tasks");
   } catch (error) {
     console.log(error);
     return error;
+  }
+};
+
+export async function createFinanceEntry(
+  data: any,
+  type: "expense" | "income"
+) {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    let result;
+    let payload = {
+      created_by: user.id,
+      title: data.title,
+      amount: data.amount,
+      category: data.category,
+      comment: data.comment,
+      date: data.date,
+    }
+    if (type === "expense") {
+      result = await supabase
+        .from("expenses")
+        .insert(payload)
+        .single();
+    } else {
+      result = await supabase
+        .from("incomes")
+        .insert(payload)
+        .single();
+    }
+
+
+    return { data: result, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: null, error };
+  }
+}
+
+export const getUserExpenses = async (date: string) => {
+  try {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const data = await supabase
+      .from("expenses")
+      .select("*")
+      .eq("created_by", user.id)
+
+    return { data, error: null };
+  } catch (error) {
+    console.log(error);
+    return { data: null, error };
   }
 };
